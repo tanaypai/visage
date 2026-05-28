@@ -2,6 +2,7 @@ const state = {
   live: false,
   connecting: false,
   details: [],
+  generatedImages: [],
   realtime: null,
   caseSchema: null,
   interviewPreamble: "",
@@ -124,6 +125,16 @@ function buildPrompt() {
     `Witness interview notes: ${details}.`,
     "Use a neutral forward-facing forensic composition on a plain background.",
   ].join("\n");
+}
+
+function getImageErrorMessage(status, errorText) {
+  try {
+    const parsed = JSON.parse(errorText);
+    const message = parsed.error?.message || parsed.error || parsed.message || errorText;
+    return `Image generation failed (${status}): ${message}`;
+  } catch {
+    return `Image generation failed (${status}): ${errorText || "No details returned."}`;
+  }
 }
 
 function renderSummary() {
@@ -533,24 +544,61 @@ function drawIteration(canvas, variant) {
 async function requestImageGeneration(count) {
   const caseSchema = getCaseSchema();
 
-  try {
-    const response = await fetch("/api/images/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: caseSchema.generation.imageModel,
-        caseProfile: caseSchema,
-        prompt: buildPrompt(),
-        n: count,
-        size: "1024x1536",
-      }),
-    });
+  const response = await fetch("/api/images/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: caseSchema.generation.imageModel,
+      caseProfile: caseSchema,
+      prompt: buildPrompt(),
+      n: count,
+      size: "1024x1536",
+    }),
+  });
 
-    if (!response.ok) throw new Error("Image service unavailable");
-    return await response.json();
-  } catch {
-    return { mode: "demo", images: [] };
+  if (!response.ok) {
+    throw new Error(getImageErrorMessage(response.status, await response.text()));
   }
+
+  return await response.json();
+}
+
+function createImageCard(image, index) {
+  const card = document.createElement("article");
+  const img = document.createElement("img");
+  const meta = document.createElement("div");
+  const download = document.createElement("a");
+
+  card.className = "iteration-card";
+  img.className = "sketch generated-sketch";
+  img.src = image.url;
+  img.alt = `Generated suspect sketch iteration ${index}`;
+  meta.className = "iteration-meta";
+  download.href = image.url;
+  download.download = `suspect-iteration-${index}.png`;
+  download.textContent = "Download";
+  meta.append(`Generated sketch ${index}`, download);
+  card.append(img, meta);
+
+  return card;
+}
+
+function createDemoCard(index) {
+  const card = document.createElement("article");
+  const canvas = document.createElement("canvas");
+  const meta = document.createElement("div");
+
+  card.className = "iteration-card";
+  canvas.className = "sketch";
+  canvas.width = 512;
+  canvas.height = 640;
+  meta.className = "iteration-meta";
+  meta.textContent = `Demo sketch ${index}`;
+
+  drawIteration(canvas, index);
+  card.append(canvas, meta);
+
+  return card;
 }
 
 async function generateIterations() {
@@ -562,23 +610,23 @@ async function generateIterations() {
   regenerateButton.disabled = true;
   regenerateButton.textContent = "Generating";
 
-  await requestImageGeneration(count);
+  try {
+    const result = await requestImageGeneration(count);
+    state.generatedImages = result.images || [];
 
-  for (let index = 1; index <= count; index += 1) {
-    const card = document.createElement("article");
-    const canvas = document.createElement("canvas");
-    const meta = document.createElement("div");
+    if (!state.generatedImages.length) {
+      throw new Error("Image generation returned no sketches.");
+    }
 
-    card.className = "iteration-card";
-    canvas.className = "sketch";
-    canvas.width = 512;
-    canvas.height = 640;
-    meta.className = "iteration-meta";
-    meta.textContent = `Same suspect, iteration ${index}`;
+    state.generatedImages.forEach((image, index) => {
+      iterationsGrid.append(createImageCard(image, index + 1));
+    });
+  } catch (error) {
+    appendTranscript("System", error.message || "Image generation failed. Showing demo sketches.");
 
-    drawIteration(canvas, index);
-    card.append(canvas, meta);
-    iterationsGrid.append(card);
+    for (let index = 1; index <= count; index += 1) {
+      iterationsGrid.append(createDemoCard(index));
+    }
   }
 
   regenerateButton.disabled = false;

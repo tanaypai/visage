@@ -7,7 +7,7 @@ A frontend prototype for voice-assisted forensic composite generation.
 - Create a new case by selecting suspect profile traits from feature-specific option lists.
 - Move directly into a witness interview backed by a Realtime voice model.
 - Finish the interview to trigger image generation.
-- Output only iterations of the single suspect for the active case.
+- Output only iterations of the single suspect for the active case, with each generated sketch rendered and downloadable.
 
 ## Case Schema
 

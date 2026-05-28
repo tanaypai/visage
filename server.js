@@ -73,6 +73,90 @@ function buildRealtimeInstructions(caseProfile, interviewPreamble) {
   ].join(" ");
 }
 
+function buildImagePrompt(prompt, caseProfile) {
+  return [
+    prompt,
+    "",
+    "Create a forensic suspect composite sketch for investigative review.",
+    "Render exactly one suspect per image, forward-facing, neutral expression, plain background.",
+    "Do not include badges, police uniforms, text labels, watermarks, weapons, or crime-scene elements.",
+    "Preserve the same identity across requested iterations while varying small sketch interpretation details.",
+    "",
+    "Shared case schema:",
+    JSON.stringify(caseProfile, null, 2),
+  ].join("\n");
+}
+
+async function handleImageGeneration(request, response) {
+  if (!process.env.OPENAI_API_KEY) {
+    sendJson(response, 500, { error: "OPENAI_API_KEY is not set for the local server." });
+    return;
+  }
+
+  try {
+    const body = JSON.parse(await readRequestBody(request));
+    const model = body.model || "gpt-image-1";
+    const count = Math.min(Math.max(Number(body.n || 1), 1), 4);
+    const prompt = buildImagePrompt(body.prompt || "", body.caseProfile || {});
+
+    if (!body.prompt) {
+      sendJson(response, 400, { error: "Missing image prompt." });
+      return;
+    }
+
+    const openaiResponse = await fetch("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        prompt,
+        n: count,
+        size: body.size || "1024x1536",
+        quality: "auto",
+      }),
+    });
+
+    const responseText = await openaiResponse.text();
+
+    if (!openaiResponse.ok) {
+      console.error("OpenAI image generation failed", openaiResponse.status, responseText);
+      sendJson(response, openaiResponse.status, {
+        error: "OpenAI image generation failed.",
+        status: openaiResponse.status,
+        details: responseText || null,
+      });
+      return;
+    }
+
+    const data = JSON.parse(responseText);
+    const images = (data.data || []).map((image, index) => {
+      const b64 = image.b64_json;
+      const url = b64 ? `data:image/png;base64,${b64}` : image.url;
+
+      return {
+        id: `suspect-iteration-${index + 1}`,
+        url,
+        b64_json: b64,
+        revised_prompt: image.revised_prompt || null,
+      };
+    });
+
+    sendJson(response, 200, {
+      images,
+      model,
+      prompt,
+      usage: data.usage || null,
+    });
+  } catch (error) {
+    sendJson(response, 500, {
+      error: error.message || "Failed to generate images.",
+    });
+  }
+}
+
 async function handleRealtimeCall(request, response) {
   if (!process.env.OPENAI_API_KEY) {
     sendJson(response, 500, { error: "OPENAI_API_KEY is not set for the local server." });
@@ -192,6 +276,11 @@ const server = http.createServer(async (request, response) => {
       "Cache-Control": "no-store",
     });
     response.end();
+    return;
+  }
+
+  if (requestUrl.pathname === "/api/images/generate" && request.method === "POST") {
+    await handleImageGeneration(request, response);
     return;
   }
 

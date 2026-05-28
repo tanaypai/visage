@@ -405,6 +405,12 @@ select:focus {
   background: var(--paper);
 }
 
+.generated-sketch {
+  display: block;
+  height: auto;
+  object-fit: cover;
+}
+
 .iteration-meta {
   display: flex;
   align-items: center;
@@ -413,6 +419,11 @@ select:focus {
   color: var(--muted);
   font-size: 0.82rem;
   font-weight: 800;
+}
+
+.iteration-meta a {
+  color: var(--blue-dark);
+  text-decoration: none;
 }
 
 @keyframes level {

@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Forensics Drawer</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">FD</div>
+          <div>
+            <h1>Forensics Drawer</h1>
+            <p id="caseLabel">New case</p>
+          </div>
+        </div>
+
+        <div class="stepper" aria-label="Case progress">
+          <span class="step active" data-step-indicator="profile">Profile</span>
+          <span class="step" data-step-indicator="interview">Interview</span>
+          <span class="step" data-step-indicator="iterations">Iterations</span>
+        </div>
+      </header>
+
+      <section class="screen active" id="profileScreen" aria-labelledby="profileTitle">
+        <div class="screen-header">
+          <p class="eyebrow">New case</p>
+          <h2 id="profileTitle">Build the initial suspect profile</h2>
+        </div>
+
+        <form class="profile-form" id="profileForm">
+          <label>
+            Case ID
+            <input name="caseId" value="24-1187" autocomplete="off" />
+          </label>
+
+          <label>
+            Age range
+            <select name="age">
+              <option>unknown adult</option>
+              <option>late teens</option>
+              <option>20s</option>
+              <option selected>30s</option>
+              <option>40s</option>
+              <option>50s</option>
+              <option>60s or older</option>
+            </select>
+          </label>
+
+          <label>
+            Face shape
+            <select name="face">
+              <option>unknown face shape</option>
+              <option>round face</option>
+              <option selected>narrow oval face</option>
+              <option>square jaw</option>
+              <option>long face</option>
+              <option>heart-shaped face</option>
+              <option>wide cheekbones</option>
+            </select>
+          </label>
+
+          <label>
+            Hair
+            <select name="hair">
+              <option>unknown hair</option>
+              <option>shaved head</option>
+              <option>short dark hair</option>
+              <option selected>dark wavy medium length hair</option>
+              <option>light straight hair</option>
+              <option>curly hair</option>
+              <option>balding</option>
+            </select>
+          </label>
+
+          <label>
+            Eyes
+            <select name="eyes">
+              <option>unknown eyes</option>
+              <option>wide-set eyes</option>
+              <option selected>close-set brown eyes</option>
+              <option>deep-set eyes</option>
+              <option>light-colored eyes</option>
+              <option>hooded eyes</option>
+            </select>
+          </label>
+
+          <label>
+            Nose
+            <select name="nose">
+              <option>unknown nose</option>
+              <option>straight nose</option>
+              <option selected>prominent narrow nose</option>
+              <option>wide nose</option>
+              <option>hooked nose</option>
+              <option>flat bridge</option>
+            </select>
+          </label>
+
+          <label>
+            Facial hair
+            <select name="facialHair">
+              <option>none or unknown</option>
+              <option>clean shaven</option>
+              <option>mustache</option>
+              <option selected>short boxed beard</option>
+              <option>goatee</option>
+              <option>full beard</option>
+              <option>stubble</option>
+            </select>
+          </label>
+
+          <label>
+            Distinguishing feature
+            <select name="mark">
+              <option>none reported</option>
+              <option selected>small scar near left eyebrow</option>
+              <option>scar on cheek</option>
+              <option>mole near mouth</option>
+              <option>tattoo on neck</option>
+              <option>pierced eyebrow</option>
+            </select>
+          </label>
+
+          <label>
+            Composite style
+            <select name="style">
+              <option selected>forensic pencil composite</option>
+              <option>neutral grayscale portrait</option>
+              <option>police sketch linework</option>
+            </select>
+          </label>
+
+          <label>
+            Iterations
+            <select name="iterations">
+              <option>2</option>
+              <option selected>3</option>
+              <option>4</option>
+            </select>
+          </label>
+
+          <label>
+            Voice model
+            <select name="voiceModel">
+              <option selected>gpt-realtime</option>
+              <option>gpt-realtime-mini</option>
+              <option>gpt-realtime-2</option>
+            </select>
+          </label>
+
+          <label>
+            Image model
+            <select name="imageModel">
+              <option selected>gpt-image-2</option>
+              <option>gpt-image-1.5</option>
+              <option>gpt-image-1</option>
+            </select>
+          </label>
+        </form>
+
+        <div class="actions">
+          <button class="primary-action" id="startCaseButton" type="button">Start interview</button>
+        </div>
+      </section>
+
+      <section class="screen" id="interviewScreen" aria-labelledby="interviewTitle">
+        <div class="screen-header split">
+          <div>
+            <p class="eyebrow">Witness interview</p>
+            <h2 id="interviewTitle">Capture descriptions for one suspect</h2>
+          </div>
+          <span class="status-pill" id="sessionStatus">Ready</span>
+        </div>
+
+        <div class="interview-layout">
+          <div class="voice-card" id="voiceCard">
+            <div class="voice-header">
+              <button class="record-button" id="recordButton" type="button">
+                <span class="record-icon" aria-hidden="true"></span>
+                <span id="recordLabel">Start interview</span>
+              </button>
+              <button class="finish-button" id="finishInterviewButton" type="button">Finish interview</button>
+            </div>
+
+            <div class="waveform" aria-hidden="true">
+              <span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+
+            <div class="transcript" id="transcript" aria-label="Interview transcript"></div>
+          </div>
+
+          <aside class="summary-card">
+            <h3>Suspect profile</h3>
+            <dl id="profileSummary"></dl>
+          </aside>
+        </div>
+      </section>
+
+      <section class="screen" id="iterationsScreen" aria-labelledby="iterationsTitle">
+        <div class="screen-header split">
+          <div>
+            <p class="eyebrow">Image generation</p>
+            <h2 id="iterationsTitle">Suspect iterations</h2>
+          </div>
+          <div class="result-actions">
+            <button class="secondary-action" id="backToInterviewButton" type="button">Back to interview</button>
+            <button class="primary-action" id="regenerateButton" type="button">Regenerate</button>
+          </div>
+        </div>
+
+        <div class="iterations-grid" id="iterationsGrid" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>

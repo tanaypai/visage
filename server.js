@@ -321,6 +321,6 @@ const server = http.createServer(async (request, response) => {
 
 Promise.all([loadLocalEnv(), loadImagePreamble()]).then(() => {
   server.listen(PORT, () => {
-    console.log(`Forensics Drawer listening on http://localhost:${PORT}`);
+    console.log(`Visage listening on http://localhost:${PORT}`);
   });
 });

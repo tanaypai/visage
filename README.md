@@ -1,12 +1,12 @@
-# Forensics Drawer
+# Visage
 
-Forensics Drawer is a voice-assisted forensic composite prototype. It helps an investigator create an initial one-suspect case profile, run a short witness interview through the OpenAI Realtime API, and generate consistent suspect sketch iterations from the collected description.
+Visage is a voice-assisted forensic composite prototype. It helps an investigator create an initial one-suspect case profile, run a short witness interview through the OpenAI Realtime API, and generate consistent suspect sketch iterations from the collected description.
 
 ## Features
 
 - Three-step case workflow: profile setup, witness interview, and generated sketch iterations.
 - Initial suspect profile form with case ID, gender or presentation, race or ethnicity, age range, eye color, hair color, composite style, iteration count, voice model, and image model.
-- Shared case schema stored as `forensics-drawer.case.v1` and passed through the interview and image-generation flow.
+- Shared case schema stored as `visage.case.v1` and passed through the interview and image-generation flow.
 - One-suspect enforcement across the frontend, Realtime instructions, and image prompt.
 - Realtime WebRTC voice interview with microphone capture, server-side VAD, near-field noise reduction, English transcription, and the `marin` voice.
 - Configurable voice model from the UI: `gpt-realtime`, `gpt-realtime-mini`, or `gpt-realtime-2`.
@@ -39,7 +39,7 @@ Forensics Drawer is a voice-assisted forensic composite prototype. It helps an i
 The frontend builds and refreshes a single active case object with this version:
 
 ```text
-forensics-drawer.case.v1
+visage.case.v1
 ```
 
 The schema includes:

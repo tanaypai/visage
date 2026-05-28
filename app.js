@@ -62,7 +62,7 @@ function buildCaseSchema() {
   const form = getProfile();
 
   return {
-    schemaVersion: "forensics-drawer.case.v1",
+    schemaVersion: "visage.case.v1",
     caseId: form.caseId,
     suspectCount: 1,
     suspect: {
